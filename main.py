@@ -1,12 +1,14 @@
 import pygame
 import random
 from player import Player
-from enemy import Enemy1, Enemy2
+from enemy import Enemy
 from collectible import Collectible
+from bullet import Bullet
 
 # Initialize pygame
 pygame.init()
 pygame.mixer.init()
+pygame.mouse.set_visible(False)
 
 collect_sound = "collect.mp3"
 collect = pygame.mixer.Sound(collect_sound)
@@ -40,12 +42,13 @@ game_state = START
 
 # Create instances
 player = Player()
-enemy1 = Enemy1()
-enemy2 = Enemy2()
+enemy1 = Enemy("enemy1.png", 3)
+enemy2 = Enemy("enemy2.png", 5, (600, 0))
 collectible = Collectible()
 score = 0
 
 all_sprites = pygame.sprite.Group()
+bullets_group = pygame.sprite.Group()
 enemies = pygame.sprite.Group()
 all_sprites.add(player)
 enemies.add(enemy1)
@@ -58,6 +61,8 @@ all_sprites.add(collectible)
 running = True
 clock = pygame.time.Clock()
 
+
+bullets = []
 
 # Start menu
 def draw_start_menu():
@@ -79,6 +84,9 @@ def draw_game_over_menu():
 
 # Main game loop
 while running:
+    playerPos = pygame.math.Vector2(*player.rect.center)
+    mousePos = pygame.math.Vector2(*pygame.mouse.get_pos())
+    direction = (mousePos - playerPos).normalize()
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
             running = False
@@ -95,10 +103,20 @@ while running:
                     enemy1.reset()
                     enemy2.reset()
                     collectible.reset()
+                    bullets = []
+                    bullets_group.empty()
                     score = 0
                     game_state = PLAYING
         elif event.type == pygame.KEYUP and game_state == PLAYING:
             player.handle_input(event.key, False)
+            
+        elif event.type == pygame.MOUSEBUTTONDOWN:
+            scaled_direction = direction * 10
+            bullet = Bullet(*player.rect.center,
+                scaled_direction.x, scaled_direction.y,
+                direction.rotate(90).angle_to((0, 0)))
+            bullets_group.add(bullet)
+            bullets.append(bullet)
 
     if game_state == START:
         draw_start_menu()
@@ -119,39 +137,26 @@ while running:
                     collect.play()
                 collectible.rect.x = random.randint(0,580)
                 collectible.rect.y = random.randint(0,400)
+        
+        for enemy in enemies:
+            enemy.collisions(bullets)
 
-        if enemy1.rect.left <=0:
-            enemy1.vx = 3    
+        for bullet in bullets:
+            bullet.update()
 
-        if enemy1.rect.right >=640:
-            enemy1.vx = -3 
-
-        if enemy1.rect.top <=0:
-            enemy1.vy = 3   
-
-        if enemy1.rect.bottom >=480:
-            enemy1.vy = -3  
-
-        if enemy2.rect.left <=0:
-            enemy2.vx = 5    
-
-        if enemy2.rect.right >=640:
-            enemy2.vx = -5 
-
-        if enemy2.rect.top <=0:
-            enemy2.vy = 5    
-
-        if enemy2.rect.bottom >=480:
-            enemy2.vy = -5
-
-            # Draw all sprites
+        # Draw all sprites
         all_sprites.draw(screen)
+        bullets_group.draw(screen)
         # Draw score
         score_text = font_small.render(f"Score: {score}", True, (255, 255, 255))
+        pygame.draw.line(screen,pygame.Color(255,255,255),playerPos, playerPos + direction * 50)
         screen.blit(score_text, (10, 10))
 
     elif game_state == GAME_OVER:
         draw_game_over_menu()
+
+
+    pygame.draw.circle(screen, pygame.Color(255,255,255), mousePos,3)
 
     pygame.display.flip()
     clock.tick(60)

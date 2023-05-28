@@ -15,16 +15,12 @@ class Player(pygame.sprite.Sprite):
         self.image_left = pygame.image.load("player_left.png")
         self.image = self.image_right
         self.rect = self.image.get_rect()
-
-        self.vx = 50
-        self.vy = 50
-        self.lives = 3
-        self.score = 0
+        self.reset()
         
      
     def reset(self):
         self.score = 0
-        self.lives = 3
+        self.lives = 1
         self.vx = 50
         self.vy = 50
         self.rect.bottom = 480
