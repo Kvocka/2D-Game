@@ -20,6 +20,15 @@ class Player(pygame.sprite.Sprite):
         self.vy = 50
         self.lives = 3
         self.score = 0
+        
+     
+    def reset(self):
+        self.score = 0
+        self.lives = 3
+        self.vx = 50
+        self.vy = 50
+        self.rect.bottom = 480
+        self.rect.left = 0
 
     def update(self):
         self.rect.x += self.vx
@@ -27,14 +36,14 @@ class Player(pygame.sprite.Sprite):
         self._handle_boundaries()
 
     def handle_input(self, key, pressed):
-        if key == pygame.K_UP:
+        if key == pygame.K_w:
             self.vy = -5 if pressed else 0
-        if key == pygame.K_DOWN:
+        if key == pygame.K_s:
             self.vy = 5 if pressed else 0
-        if key == pygame.K_LEFT:
+        if key == pygame.K_a:
             self.vx = -5 if pressed else 0
             self.image = self.image_left
-        if key == pygame.K_RIGHT:
+        if key == pygame.K_d:
             self.vx = 5 if pressed else 0
             self.image = self.image_right
 

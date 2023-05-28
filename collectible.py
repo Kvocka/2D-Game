@@ -6,3 +6,7 @@ class Collectible(pygame.sprite.Sprite):
 
         self.image = pygame.image.load("collectible.png")
         self.rect = self.image.get_rect()
+        
+    
+    def reset(self):
+        pass
